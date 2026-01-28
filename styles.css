@@ -1,0 +1,466 @@
+
+:root {
+    --bg-deep: #020617;
+    --accent-blue: #38bdf8;
+    --card-glass: rgba(15, 23, 42, 0.7);
+    --input-bg: rgba(0, 0, 0, 0.3);
+    --transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html {
+    font-size: 16px;
+}
+
+body {
+    height: 100vh;
+    background: var(--bg-deep);
+    font-family: 'Inter', sans-serif;
+    color: white;
+    overflow-x: hidden; /* Prevents horizontal scroll on small screens */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* --- 2. BACKGROUND & AMBIANCE --- */
+.viewport-bg {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+}
+
+canvas {
+    position: absolute;
+    inset: 0;
+}
+
+.egypt-map-container {
+    position: absolute;
+    width: 600px;
+    height: 600px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    opacity: 0.3;
+}
+
+/* --- 3. LOGIN WRAPPER & CARD --- */
+/* Wrapper ensures vertical stacking on mobile */
+.login-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-height: 100vh;
+    padding: 10px;
+    z-index: 10;
+}
+
+.glass-card {
+    background: var(--card-glass);
+    backdrop-filter: blur(25px);
+    width: 100%;
+    max-width: 480px;
+    padding: 3rem 3.5rem;
+    border-radius: 32px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    box-shadow: 0 40px 100px rgba(0, 0, 0, 0.6);
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 550px;
+    transition: var(--transition);
+}
+
+/* --- 4. TYPOGRAPHY & FORMS --- */
+.logo { 
+    height: 80px;            /* Increased from 55px */
+    width: auto;             /* Ensures the aspect ratio stays perfect */
+    margin-bottom: 2rem;     /* Increased spacing below the larger logo */
+    filter: brightness(0) invert(1); 
+    transition: transform 0.3s ease;
+}
+
+.logo:hover {
+    transform: scale(1.05);
+}
+
+h1 { 
+    font-size: 1.6rem; 
+    letter-spacing: 5px; 
+    color: var(--accent-blue);
+    margin-bottom: 0.75rem; 
+}
+
+p { 
+    font-size: 0.95rem; 
+    opacity: 0.6;
+    margin-bottom: 3rem; 
+}
+
+.input-group { 
+    position: relative;
+    margin-bottom: 2.5rem; 
+}
+
+.input-group input {
+    width: 100%;
+    padding: 16px 0;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid rgba(255,255,255,0.2);
+    color: white;
+    font-size: 1.1rem;
+    outline: none;
+}
+
+.input-group label {
+    position: absolute; 
+    left: 0; 
+    top: 16px;
+    color: rgba(255,255,255,0.4);
+    pointer-events: none;
+    transition: 0.3s ease;
+    font-size: 1.1rem;
+}
+
+.input-group input:focus ~ label,
+.input-group input:not(:placeholder-shown) ~ label {
+    top: -15px; 
+    font-size: 0.85rem; 
+    color: var(--accent-blue);
+}
+
+.input-group .bar {
+    position: absolute; 
+    bottom: 0; 
+    left: 0; 
+    width: 0;
+    height: 2px; 
+    background: var(--accent-blue);
+    transition: 0.4s ease;
+}
+
+.input-group input:focus ~ .bar { 
+    width: 100%; 
+    box-shadow: 0 0 10px var(--accent-blue); 
+}
+
+/* --- 5. BUTTONS & FOOTER --- */
+.glow-btn {
+    width: 100%;
+    padding: 20px;
+    background: linear-gradient(90deg, #0284c7, #38bdf8);
+    border: none;
+    border-radius: 12px;
+    color: white;
+    font-weight: 800;
+    font-size: 1rem;
+    letter-spacing: 2px;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.glow-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0 25px rgba(56, 189, 248, 0.5);
+}
+
+.footer-meta {
+    margin-top: 3rem;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    font-size: 11px;
+    letter-spacing: 1px;
+    opacity: 0.5;
+}
+
+/* --- 6. AI SENTINEL (ROBOT) --- */
+.ai-sentinel {
+    position: absolute;
+    right: 5%;
+    bottom: 5%;
+    width: 180px;
+    text-align: center;
+    filter: drop-shadow(0 0 15px rgba(56, 189, 248, 0.3));
+    transition: var(--transition);
+}
+
+.robot-svg { width: 100%; height: auto; overflow: visible; }
+.robot-float-group { animation: floatRobot 4s ease-in-out infinite; }
+.ring { fill: none; stroke: var(--accent-blue); stroke-width: 0.5; opacity: 0.3; transform-origin: center; }
+.ring-outer { stroke-dasharray: 20 10; animation: spin 15s linear infinite; }
+.ring-inner { stroke-dasharray: 5 15; animation: spin 8s linear reverse infinite; }
+.robot-part { fill: #0f172a; stroke: var(--accent-blue); stroke-width: 1.5; }
+.robot-visor { fill: #000; stroke: var(--accent-blue); stroke-width: 1; }
+.robot-eye { fill: var(--accent-blue); animation: eyeScan 3s ease-in-out infinite; }
+.antenna-line { stroke: var(--accent-blue); stroke-width: 1; opacity: 0.6; }
+
+.status-indicator {
+    font-family: 'Courier New', monospace;
+    font-size: 10px;
+    color: var(--accent-blue);
+    margin-top: 15px;
+    letter-spacing: 1px;
+    background: rgba(0, 0, 0, 0.4);
+    padding: 5px 10px;
+    border-radius: 20px;
+    border: 1px solid rgba(56, 189, 248, 0.2);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.status-dot {
+    width: 6px; height: 6px;
+    background: #22c55e;
+    border-radius: 50%;
+    box-shadow: 0 0 8px #22c55e;
+    animation: pulseStatus 2s infinite;
+}
+
+/* --- 7. ANIMATIONS --- */
+@keyframes floatRobot {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-15px) rotate(2deg); }
+}
+@keyframes eyeScan {
+    0%, 100% { transform: translateX(-4px); }
+    50% { transform: translateX(4px); }
+}
+@keyframes pulseStatus {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+}
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* --- 8. RESPONSIVE DESIGN (MEDIA QUERIES) --- */
+
+/* Tablet & Smaller Laptops */
+@media (max-width: 1024px) {
+    .ai-sentinel {
+        width: 150px;
+        right: 3%;
+        bottom: 3%;
+    }
+}
+
+/* Mobile Screens (The Robot Appears Below the Card) */
+@media (max-width: 768px) {
+    html { font-size: 14px; }
+
+    body {
+        overflow-y: auto; /* Allows scrolling on tall cards */
+        align-items: flex-start; /* Start from top on mobile */
+    }
+
+    .glass-card {
+        padding: 3rem 2rem;
+        min-height: auto;
+        margin-top: 2rem;
+    }
+
+    .ai-sentinel {
+        position: relative; /* Removes from absolute corner */
+        right: auto;
+        bottom: auto;
+        margin: 2rem auto; /* Centers below the card */
+        width: 120px;
+        opacity: 0.8;
+    }
+
+    .egypt-map-container {
+        width: 100%;
+        height: auto;
+    }
+}
+
+/* Ultra-Wide Adjustment */
+@media (min-width: 1800px) {
+    .glass-card { max-width: 520px; }
+    .ai-sentinel { width: 220px; }
+}
+
+.robot-interaction-wrapper {
+    width: 100%;
+    height: auto;
+    /* Hardware acceleration */
+    will-change: transform; 
+    /* This smooths out the JS movement updates */
+    transition: transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94); 
+}
+
+.ai-sentinel {
+    /* Ensure no generic transition:all is fighting the movement */
+    transition: opacity 0.5s ease; 
+}
+
+.robot-float-group {
+    /* This handles ONLY the vertical float now */
+    animation: floatRobot 4s ease-in-out infinite;
+}
+
+@keyframes floatRobot {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-15px); }
+}
+
+@media (max-width: 768px) {
+    .logo {
+        height: 50px; /* Slightly smaller on phones */
+        margin-bottom: 1.5rem;
+    }
+}
+
+.input-group {
+    position: relative; /* Ensure the icon can be positioned absolutely */
+}
+
+.password-toggle {
+    position: absolute;
+    right: 10px;
+    top: 15px;
+    cursor: pointer;
+    width: 20px;
+    height: 20px;
+    
+    /* THE COLOR: High-contrast Gold/Amber */
+    /* This stands out perfectly against the deep blue/black background */
+    color: #fbbf24; 
+    
+    transition: var(--transition);
+    opacity: 0.6;
+    z-index: 11;
+}
+
+.password-toggle:hover {
+    opacity: 1;
+    filter: drop-shadow(0 0 8px #fbbf24);
+    transform: scale(1.1);
+}
+.error-message {
+    margin-top: 12px;
+    color: #ff4d4f;
+    font-size: 0.9rem;
+    min-height: 18px;
+    text-align: center;
+}
+
+/* Button loading */
+.glow-btn {
+    position: relative;
+    overflow: hidden;
+}
+
+.glow-btn.loading {
+    pointer-events: none;
+    opacity: 0.7;
+}
+
+.btn-loader {
+    display: none;
+    width: 18px;
+    height: 18px;
+    border: 2px solid transparent;
+    border-top: 2px solid #fff;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: auto;
+}
+
+.glow-btn.loading .btn-text {
+    display: none;
+}
+
+.glow-btn.loading .btn-loader {
+    display: inline-block;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+.hidden {
+  display: none;
+}
+
+.dashboard-actions {
+  display: grid;
+  gap: 14px;
+}
+
+.glow-btn.secondary {
+  background: linear-gradient(135deg, #22d3ee, #0284c7);
+}
+/* FORCE BACKGROUND VISIBILITY */
+.viewport-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+}
+
+#canvas-stars {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* ROBOT LAYER */
+.ai-sentinel {
+  position: fixed;
+  bottom: 30px;
+  right: 40px;
+  z-index: 5;
+}
+
+/* DASHBOARD ABOVE BACKGROUND */
+.dashboard-wrapper {
+  position: relative;
+  z-index: 10;
+}
+
+/* MODERN DROPDOWN */
+.role-select-wrapper.modern {
+  max-width: 320px;
+  margin: 0 auto 20px;
+}
+
+.role-select {
+  text-align: center;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+}
+
+/* CENTER PANEL */
+.control-panel.center {
+  text-align: center;
+}
+
+/* ROLE CARD */
+.role-card {
+  text-align: center;
+  padding: 18px;
+}
+
+/* BUTTON GROUP */
+.dashboard-actions {
+  display: grid;
+  gap: 14px;
+}
+
+.hidden {
+  display: none;
+}

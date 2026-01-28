@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Rameda AI | Access Control</title>
+    
+    <link rel="stylesheet" href="styles.css">
+    <script>
+    (function() {
+        // 1. Create or Select Link Element
+        let link = document.querySelector("link[rel~='icon']");
+        if (!link) {
+            link = document.createElement('link');
+            link.rel = 'icon';
+            document.head.appendChild(link);
+        }
+
+        const img = new Image();
+        img.src = 'assets/logo.png'; // Make sure this path is correct!
+        img.crossOrigin = "Anonymous"; // Fixes some browser security blocks
+
+        img.onload = () => {
+            const size = 64; 
+            const canvas = document.createElement('canvas');
+            canvas.width = size;
+            canvas.height = size;
+            const ctx = canvas.getContext('2d');
+
+            // 2. ZOOM & CENTER LOGIC
+            const scale = 2.5; // 1.3x Zoom (Fit)
+            const width = size * scale;
+            const height = (size * (img.height / img.width)) * scale;
+            const x = (size - width) / 2;
+            const y = (size - height) / 2;
+
+            // 3. DRAW THE IMAGE
+            ctx.drawImage(img, x, y, width, height);
+
+            // 4. COLOR IT BLUE (#38bdf8 - Your Theme Color)
+            // This locks the drawing area to the shape of the logo we just drew
+            ctx.globalCompositeOperation = 'source-in'; 
+            ctx.fillStyle = '#38bdf8'; 
+            ctx.fillRect(0, 0, size, size);
+
+            // 5. SET AS ICON
+            link.href = canvas.toDataURL();
+        };
+
+        // Fallback if image fails to load
+        img.onerror = () => {
+            console.warn("Logo not found at 'assets/logo.png'. Check your path.");
+        };
+    })();
+</script>
+    <style>
+        /* --- MODERN INPUT STYLES --- */
+        .input-group { 
+            position: relative; 
+            margin-bottom: 25px; 
+            transition: all 0.3s ease; 
+        }
+        .input-group.hidden { display: none; }
+
+        /* Input Field */
+        .input-group input {
+            position: relative;
+            z-index: 1; 
+            width: 100%; 
+            /* Extra right padding ensures text doesn't hit the eye icon */
+            padding: 10px 35px 10px 0; 
+            font-size: 16px; 
+            color: #fff;
+            border: none; 
+            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+            outline: none; 
+            background: transparent; 
+            transition: all 0.3s ease;
+        }
+
+        /* Floating Label */
+        .input-group label {
+            position: absolute; 
+            top: 10px; 
+            left: 0; 
+            font-size: 16px;
+            color: rgba(255, 255, 255, 0.5); 
+            pointer-events: none; 
+            transition: 0.3s ease all;
+            z-index: 5; 
+        }
+
+        /* Float Logic */
+        .input-group input:focus ~ label,
+        .input-group input:not(:placeholder-shown) ~ label {
+            top: -20px; 
+            font-size: 12px; 
+            color: #38bdf8; 
+            font-weight: 600; 
+            letter-spacing: 1px;
+        }
+        
+        /* Hide Default Browser Eyes (IE/Edge) */
+        input::-ms-reveal, input::-ms-clear { display: none !important; }
+
+        /* --- PASSWORD TOGGLE ICON --- 
+     .password-toggle {
+            position: absolute;
+            right: 0;
+            top: 10px;
+            cursor: pointer;
+            z-index: 10;
+            color: rgba(255, 255, 255, 0.4);
+            transition: color 0.3s ease;
+        }
+        .password-toggle:hover {
+            color: #38bdf8;
+        }
+        .password-toggle svg {
+            width: 20px;
+            height: 20px;
+        } */
+
+        /* --- BRAND LOGO STYLES --- */
+        .brand-logo {
+            display: block;
+            width: 100px; /* Adjust size as needed */
+            height: auto;
+            margin: 0 auto 15px auto;
+            filter: drop-shadow(0 0 15px rgba(56, 189, 248, 0.3)); /* Subtle Blue Glow */
+        }
+
+        /* Validation Colors */
+        .input-group.valid input { border-bottom-color: #22c55e; }
+        .input-group.valid label { color: #22c55e !important; }
+        .input-group.invalid input { border-bottom-color: #ef4444; }
+        .input-group.invalid label { color: #ef4444 !important; }
+        .input-group input:focus { border-bottom-color: #38bdf8; }
+
+        /* Validation Message */
+        .validation-feedback {
+            font-size: 0.7rem; height: 0; overflow: hidden; transition: height 0.3s ease;
+            margin-top: 5px; color: #ef4444; font-weight: 500;
+        }
+        .input-group.invalid .validation-feedback { height: 15px; }
+
+        /* Forgot Link */
+        .forgot-link { text-align: right; margin-top: -15px; margin-bottom: 20px; position: relative; z-index: 10; }
+        .forgot-btn { background: none; border: none; color: rgba(255, 255, 255, 0.5); font-size: 0.8rem; cursor: pointer; }
+        .forgot-btn:hover { color: #38bdf8; text-decoration: underline; }
+
+        /* Robot Styles 
+        .ai-sentinel { 
+            position: fixed; bottom: 20px; right: 20px; width: 140px; 
+            z-index: 50; pointer-events: none; display: block !important;
+            filter: drop-shadow(0 0 15px rgba(56, 189, 248, 0.3));
+        }
+        .robot-eye { transition: transform 0.1s; fill: #38bdf8; }
+        .robot-part { fill: rgba(30, 41, 59, 0.9); stroke: #38bdf8; stroke-width: 2; }
+        .ring { fill: none; stroke: rgba(56, 189, 248, 0.2); stroke-width: 1; }
+        .robot-visor { fill: rgba(56, 189, 248, 0.1); }
+        */
+    </style>
+</head>
+
+<body class="dark">
+
+    <div class="viewport-bg">
+        <canvas id="canvas-stars"></canvas>
+        <div class="egypt-map-container">
+            <svg class="egypt-silhouette" viewBox="0 0 500 500">
+                <path d="M100,100 L400,100 L420,450 L80,450 Z" opacity="0.1" fill="none" stroke="var(--accent-blue)" stroke-width="2"/>
+            </svg>
+            <canvas id="canvas-zones" width="600" height="600"></canvas>
+        </div>
+    </div>
+
+    <!-- <div class="ai-sentinel" id="robot">
+        <div class="robot-interaction-wrapper" id="robot-move">
+            <svg viewBox="0 0 100 100" class="robot-svg">
+                <defs>
+                    <filter id="robot-glow" x="-50%" y="-50%" width="200%" height="200%">
+                        <feGaussianBlur stdDeviation="2.5" result="coloredBlur"/>
+                        <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+                    </filter>
+                </defs>
+                <circle cx="50" cy="50" r="48" class="ring ring-outer"/>
+                <circle cx="50" cy="50" r="40" class="ring ring-inner"/>
+                <g class="robot-float-group">
+                    <path class="robot-part" d="M35,65 Q50,80 65,65 L60,55 L40,55 Z"/>
+                    <path class="robot-part head-shell" d="M30,50 Q30,25 50,25 Q70,25 70,50 L65,55 L35,55 Z"/>
+                    <rect class="robot-visor" x="38" y="38" width="24" height="7" rx="3.5"/>
+                    <circle class="robot-eye" cx="44" cy="41.5" r="1.5"/> 
+                    <circle class="robot-eye" cx="56" cy="41.5" r="1.5"/> 
+                </g>
+            </svg>
+        </div>
+         <div class="status-indicator">
+        <span class="status-dot"></span>
+        AI_NEXUS_v1.0: ACTIVE
+    </div>
+    </div> -->
+
+    <div class="ai-sentinel" id="robot">
+    <div class="robot-interaction-wrapper" id="robot-move">
+        <svg viewBox="0 0 100 100" class="robot-svg">
+            <defs>
+                <filter id="robot-glow" x="-50%" y="-50%" width="200%" height="200%">
+                    <feGaussianBlur stdDeviation="2.5" result="coloredBlur"/>
+                    <feMerge>
+                        <feMergeNode in="coloredBlur"/>
+                        <feMergeNode in="SourceGraphic"/>
+                    </feMerge>
+                </filter>
+            </defs>
+
+            <circle cx="50" cy="50" r="48" class="ring ring-outer" />
+            <circle cx="50" cy="50" r="40" class="ring ring-inner" />
+            
+            <g class="robot-float-group">
+                <path class="robot-part" d="M35,65 Q50,80 65,65 L60,55 L40,55 Z" />
+                <path class="robot-part head-shell" d="M30,50 Q30,25 50,25 Q70,25 70,50 L65,55 L35,55 Z" />
+                <rect class="robot-visor" x="38" y="38" width="24" height="7" rx="3.5" />
+                <circle class="robot-eye" cx="50" cy="41.5" r="1.5" />
+                <line x1="30" y1="45" x2="22" y2="40" class="antenna-line" />
+                <line x1="70" y1="45" x2="78" y2="40" class="antenna-line" />
+            </g>
+        </svg>
+    </div>
+
+    <div class="status-indicator">
+        <span class="status-dot"></span>
+        AI_NEXUS_v1.0: ACTIVE
+    </div>
+</div>
+    <main class="login-wrapper">
+        <div class="glass-card">
+            <header>
+                <img src="assets/logo.png" alt="Rameda Logo" class="logo">
+                
+                <h1 id="headerTitle" style="color:#38bdf8; letter-spacing:2px;">ANALYTICS NEXUS</h1>
+                <p id="headerSubtitle">Market Penetration & Operational Expense Intelligence</p>
+            </header>
+
+            <form id="loginForm" novalidate>
+
+                <div class="input-group" id="emailGroup">
+                    <input type="email" id="email" required placeholder=" ">
+                    <label>Email Address</label>
+                    <div class="validation-feedback">Invalid email format</div>
+                </div>
+
+                <div class="input-group" id="passGroup">
+                    <input type="password" id="password" required placeholder=" ">
+                    <label>Password</label>
+                    
+                   <span class="password-toggle" id="togglePassword">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                            <circle cx="12" cy="12" r="3"></circle>
+                        </svg>
+                    </span>
+
+                    <div class="validation-feedback">Password must be 6+ characters</div>
+                </div>
+
+                <div class="forgot-link" id="forgotContainer">
+                    <button type="button" class="forgot-btn" id="forgotBtn">Forgot Password?</button>
+                </div>
+
+                <div id="loginMessage" style="min-height:20px; margin:20px 0; font-size:0.85rem; text-align:center;"></div>
+
+                <button type="submit" class="glow-btn" id="loginBtn">
+                    <span class="btn-text">INITIALIZE SESSION</span>
+                    <span class="btn-loader"></span>
+                </button>
+
+                <button type="button" id="backBtn" class="text-btn" style="display:none; margin-top:15px; width:100%; background:none; border:none; color:rgba(255,255,255,0.6); cursor:pointer;">
+                    ← Return to Login
+                </button>
+            </form>
+            
+            <div class="footer-meta">
+                © 2026 RAMEDA PHARMACEUTICALS | AI TEAM
+            </div>
+        </div>
+    </main>
+
+    <script src="script.js"></script>
+    
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAxlWe8HftfYeQvmE2W8TyXJapp5qERa4E",
+            authDomain: "rameda-sales.firebaseapp.com",
+            projectId: "rameda-sales"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // Elements
+        const loginForm = document.getElementById("loginForm");
+        const msg = document.getElementById("loginMessage");
+        const btn = document.getElementById("loginBtn");
+        const btnText = btn.querySelector(".btn-text");
+        const emailInput = document.getElementById("email");
+        const passInput = document.getElementById("password");
+        const emailGroup = document.getElementById("emailGroup");
+        const passGroup = document.getElementById("passGroup");
+        
+        const forgotBtn = document.getElementById("forgotBtn");
+        const backBtn = document.getElementById("backBtn");
+        const headerTitle = document.getElementById("headerTitle");
+        const headerSubtitle = document.getElementById("headerSubtitle");
+        const forgotContainer = document.getElementById("forgotContainer");
+
+        let mode = 'login';
+
+        // --- 1. SWITCH MODES ---
+        forgotBtn.addEventListener('click', () => {
+            mode = 'reset';
+            passGroup.classList.add("hidden");
+            forgotContainer.style.display = 'none';
+            headerTitle.innerText = "RECOVER ACCESS";
+            headerSubtitle.innerText = "Enter email to reset password";
+            btnText.innerText = "SEND RESET LINK";
+            backBtn.style.display = 'block';
+            msg.innerText = "";
+        });
+
+        backBtn.addEventListener('click', () => {
+            mode = 'login';
+            passGroup.classList.remove("hidden");
+            forgotContainer.style.display = 'block';
+            headerTitle.innerText = "ANALYTICS NEXUS";
+            headerSubtitle.innerText = "Identity Verification Protocol";
+            btnText.innerText = "INITIALIZE SESSION";
+            backBtn.style.display = 'none';
+            msg.innerText = "";
+        });
+
+        // --- 2. INPUT VALIDATION (Visual) ---
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+        emailInput.addEventListener("input", () => {
+            const val = emailInput.value.trim();
+            emailGroup.classList.remove("valid", "invalid");
+            if(val.length > 0) {
+                if (emailRegex.test(val)) emailGroup.classList.add("valid");
+                else emailGroup.classList.add("invalid");
+            }
+        });
+
+        passInput.addEventListener("input", () => {
+            const val = passInput.value;
+            passGroup.classList.remove("valid", "invalid");
+            if(val.length > 0) {
+                if (val.length >= 6) passGroup.classList.add("valid");
+                else passGroup.classList.add("invalid");
+            }
+        });
+
+        // --- 3. ROBOT EYES FOLLOW CURSOR ---
+        document.addEventListener('mousemove', (e) => {
+            const robot = document.getElementById('robot');
+            const eyes = document.querySelectorAll('.robot-eye');
+            if (!robot) return;
+            const rect = robot.getBoundingClientRect();
+            const robotX = rect.left + rect.width / 2;
+            const robotY = rect.top + rect.height / 2;
+            const angle = Math.atan2(e.clientY - robotY, e.clientX - robotX);
+            const distance = Math.min(3, Math.hypot(e.clientX - robotX, e.clientY - robotY) / 20);
+            const x = Math.cos(angle) * distance;
+            const y = Math.sin(angle) * distance;
+            eyes.forEach(eye => { eye.style.transform = `translate(${x}px, ${y}px)`; });
+        });
+
+        // --- 4. MAIN LOGIC (LOGIN & RESET) ---
+        loginForm.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const email = emailInput.value.trim();
+            const pass = passInput.value;
+
+            // Basic Validation Check (Shake Only)
+            if (!emailRegex.test(email)) {
+                shakeForm();
+                msg.innerText = ""; 
+                emailGroup.classList.add("invalid");
+                return;
+            }
+
+            // PROCESSING
+            btn.classList.add("loading");
+            btnText.innerText = "PROCESSING...";
+            msg.innerText = "";
+
+            try {
+                if (mode === 'login') {
+                    if (pass.length < 6) { throw { code: 'auth/weak-password' }; }
+
+                    // --- LOGIN ---
+                    msg.innerText = "Verifying Credentials...";
+                    msg.style.color = "#38bdf8";
+
+                    const userCred = await signInWithEmailAndPassword(auth, email, pass);
+                    const uid = userCred.user.uid;
+                    const snap = await getDoc(doc(db, "users", uid));
+                    
+                    if(!snap.exists()) throw new Error("Account configuration error.");
+
+                    const role = snap.data().role;
+                    msg.innerText = "ACCESS GRANTED";
+                    msg.style.color = "#22c55e"; 
+
+                    setTimeout(() => {
+                        window.location.href = (role === "admin") ? "admin.html" : "dashboard.html";
+                    }, 800);
+
+                } else {
+                    // --- RESET ---
+                    msg.innerText = "Sending Recovery Link...";
+                    msg.style.color = "#38bdf8";
+
+                    await sendPasswordResetEmail(auth, email);
+                    
+                    msg.innerText = "Reset link sent to your email!";
+                    msg.style.color = "#22c55e";
+                    btnText.innerText = "SEND AGAIN";
+                }
+
+            } catch (error) {
+                console.error("Auth Error:", error.code);
+                let friendlyMsg = "Operation Failed.";
+
+                if (mode === 'login') {
+                    friendlyMsg = "Invalid Email or Password."; 
+                    if (error.code === 'auth/network-request-failed') friendlyMsg = "Connection Error.";
+                    else if (error.code === 'auth/too-many-requests') friendlyMsg = "Too many attempts. Locked.";
+                } else {
+                    if (error.code === 'auth/user-not-found') friendlyMsg = "Email not registered.";
+                    else friendlyMsg = "Error sending link.";
+                }
+
+                msg.innerText = friendlyMsg;
+                msg.style.color = "#ef4444"; 
+                btnText.innerText = mode === 'login' ? "TRY AGAIN" : "RETRY";
+                shakeForm();
+            } finally {
+                btn.classList.remove("loading");
+            }
+        });
+
+        function shakeForm() {
+            document.querySelector('.glass-card').animate([
+                { transform: 'translateX(0)' }, { transform: 'translateX(-10px)' }, 
+                { transform: 'translateX(10px)' }, { transform: 'translateX(0)' }
+            ], { duration: 300 });
+        }
+    </script>
+</body>
+</html>

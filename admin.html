@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Rameda AI | Admin Command</title>
+
+<link rel="stylesheet" href="styles.css">
+<script>
+    (function() {
+        // 1. Create or Select Link Element
+        let link = document.querySelector("link[rel~='icon']");
+        if (!link) {
+            link = document.createElement('link');
+            link.rel = 'icon';
+            document.head.appendChild(link);
+        }
+
+        const img = new Image();
+        img.src = 'assets/logo.png'; // Make sure this path is correct!
+        img.crossOrigin = "Anonymous"; // Fixes some browser security blocks
+
+        img.onload = () => {
+            const size = 64; 
+            const canvas = document.createElement('canvas');
+            canvas.width = size;
+            canvas.height = size;
+            const ctx = canvas.getContext('2d');
+
+            // 2. ZOOM & CENTER LOGIC
+            const scale = 2.5; // 1.3x Zoom (Fit)
+            const width = size * scale;
+            const height = (size * (img.height / img.width)) * scale;
+            const x = (size - width) / 2;
+            const y = (size - height) / 2;
+
+            // 3. DRAW THE IMAGE
+            ctx.drawImage(img, x, y, width, height);
+
+            // 4. COLOR IT BLUE (#38bdf8 - Your Theme Color)
+            // This locks the drawing area to the shape of the logo we just drew
+            ctx.globalCompositeOperation = 'source-in'; 
+            ctx.fillStyle = '#38bdf8'; 
+            ctx.fillRect(0, 0, size, size);
+
+            // 5. SET AS ICON
+            link.href = canvas.toDataURL();
+        };
+
+        // Fallback if image fails to load
+        img.onerror = () => {
+            console.warn("Logo not found at 'assets/logo.png'. Check your path.");
+        };
+    })();
+</script>
+<style>
+  /* --- GLOBAL LAYOUT --- */
+  html, body { width: 100%; height: 100%; margin: 0; font-family: 'Segoe UI', sans-serif; overflow-x: hidden; background-color: #020617; }
+  /* Initial hidden state for reveal animation */
+  body { visibility: hidden; opacity: 0; transition: opacity 0.3s ease-in; }
+  
+  .viewport-bg { position: fixed; inset: 0; z-index: 0; }
+  canvas { display: block; }
+
+  /* --- CONTAINER --- */
+  .admin-container { position: relative; z-index: 10; max-width: 1500px; margin: 80px auto 40px; padding: 0 20px; }
+
+  /* --- STICKY TABS --- */
+  .tabs-nav { 
+      display: flex; justify-content: center; gap: 10px; margin-bottom: 30px; 
+      position: sticky; top: 20px; z-index: 100;
+      background: rgba(15, 23, 42, 0.85); padding: 10px 20px; 
+      border-radius: 50px; border: 1px solid rgba(56, 189, 248, 0.3); 
+      backdrop-filter: blur(20px); width: fit-content; 
+      margin-left: auto; margin-right: auto; flex-wrap: wrap; 
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  }
+  .tab-btn { background: transparent; border: none; color: rgba(255, 255, 255, 0.6); padding: 10px 20px; border-radius: 40px; cursor: pointer; font-size: 0.9rem; font-weight: 600; transition: all 0.3s ease; }
+  .tab-btn:hover { color: white; background: rgba(255, 255, 255, 0.05); }
+  .tab-btn.active { background: linear-gradient(135deg, #0284c7, #38bdf8); color: white; box-shadow: 0 4px 15px rgba(56, 189, 248, 0.4); }
+  .tab-pane { display: none; animation: slideUp 0.4s ease-out; }
+  .tab-pane.active { display: block; }
+  @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* --- CARDS & TYPOGRAPHY --- */
+  .glass-card { background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(56, 189, 248, 0.15); border-radius: 24px; padding: 30px; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5); backdrop-filter: blur(20px); }
+  .section-title { color: #38bdf8; font-size: 1.1rem; margin-bottom: 25px; text-align: center; letter-spacing: 2px; text-transform: uppercase; font-weight: 700; }
+
+  /* --- LOGO STYLING --- */
+  .logo { display: block; margin: 0 auto 25px auto; height: 100px; filter: brightness(0) invert(1); transition: transform 0.3s ease; }
+  .logo:hover { transform: scale(1.05); }
+  @media (max-width: 600px) { .logo { max-width: 80px; margin-bottom: 20px; } }
+
+  /* --- INPUTS & FORMS --- */
+  .glass-input { width: 100%; padding: 14px; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; color: white; font-size: 1rem; outline: none; margin-bottom: 15px; transition: 0.3s; }
+  .glass-input:focus { border-color: #38bdf8; background: rgba(56, 189, 248, 0.05); }
+
+  /* --- CUSTOM DROPDOWNS --- */
+  .custom-dd-wrapper { position: relative; margin-bottom: 15px; }
+  .custom-dd-trigger { width: 100%; padding: 14px; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; color: rgba(255, 255, 255, 0.7); cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: 0.3s; }
+  .custom-dd-trigger:hover { border-color: #38bdf8; background: rgba(56, 189, 248, 0.05); }
+  .custom-dd-options { position: absolute; top: 110%; left: 0; right: 0; background: #0f172a; border: 1px solid #38bdf8; border-radius: 12px; z-index: 100; display: none; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+  .custom-dd-options.show { display: block; }
+  .dd-option { padding: 12px 16px; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; align-items: center; gap: 10px; color: #ccc; transition: 0.2s; }
+  .dd-option:hover { background: rgba(56, 189, 248, 0.15); color: white; padding-left: 20px; }
+  .dd-option.selected { color: #38bdf8; font-weight: bold; background: rgba(56, 189, 248, 0.05); }
+  .check { opacity: 0; } .dd-option.selected .check { opacity: 1; }
+
+  /* --- BUTTONS --- */
+  .glow-btn { width: 100%; padding: 16px; background: linear-gradient(90deg, #0284c7, #38bdf8); border: none; border-radius: 12px; color: white; font-weight: 700; font-size: 1rem; cursor: pointer; transition: 0.3s; margin-top: 10px; }
+  .glow-btn:hover { transform: translateY(-2px); box-shadow: 0 0 25px rgba(56, 189, 248, 0.4); }
+  .glow-btn.secondary { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.1); }
+  .glow-btn.accent { background: linear-gradient(90deg, #7c3aed, #a855f7); }
+  .glow-btn.danger { background: linear-gradient(90deg, #ef4444, #b91c1c); box-shadow: 0 0 15px rgba(239, 68, 68, 0.3); border:none; }
+  .glow-btn.danger:hover { box-shadow: 0 0 25px rgba(239, 68, 68, 0.5); transform: translateY(-2px); }
+
+  /* --- DATES --- */
+  .date-row { display: grid; grid-template-columns: 80px 1fr 1fr; gap: 10px; align-items: center; margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+  .date-label { font-size: 0.75rem; color: #38bdf8; font-weight: bold; text-transform: uppercase; }
+  .date-group label { font-size: 0.65rem; color: rgba(255,255,255,0.4); margin-bottom: 4px; display: block; }
+  input[type="date"] { width: 100%; padding: 12px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: white; font-family: monospace; color-scheme: dark; }
+
+  /* --- DECK LAYOUT --- */
+  .deck-container { display: flex; gap: 20px; min-height: 350px; min-width: auto; }
+  .deck-menu { flex: 0 0 200px; display: flex; flex-direction: column; gap: 10px; border-right: 1px solid rgba(255,255,255,0.1); padding-right: 20px; }
+  .deck-btn { text-align: left; padding: 15px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; color: #94a3b8; cursor: pointer; transition: 0.2s; font-weight: 600; font-size: 0.9rem; display: flex; align-items: center; gap: 10px; }
+  .deck-btn:hover { background: rgba(255,255,255,0.05); color: white; }
+  .deck-btn.active { background: linear-gradient(90deg, rgba(56,189,248,0.1), transparent); border-left: 3px solid #38bdf8; color: #38bdf8; }
+  
+  .deck-content { flex: 1; position: relative; }
+  .deck-panel { display: none; animation: fadeIn 0.3s ease; height: 100%; flex-direction: column; justify-content: center; position: relative; }
+  .deck-panel.active { display: flex; }
+  @keyframes fadeIn { from{opacity:0; transform:translateY(5px)} to{opacity:1; transform:translateY(0)} }
+
+  /* --- MAP LINKS --- */
+  .action-list { display: grid; gap: 12px; margin-top: 20px; }
+  .action-item { 
+      display: flex; justify-content: space-between; align-items: center; 
+      padding: 18px 20px; border-radius: 14px; text-decoration: none; 
+      transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); cursor: pointer; 
+      position: relative; overflow: hidden;
+  }
+  .action-item:hover { transform: translateY(-3px) scale(1.01); }
+
+  @media (max-width: 700px) { .deck-container { flex-direction: column; } .deck-menu { flex-direction: row; overflow-x: auto; padding-right: 0; padding-bottom: 15px; border-right: none; border-bottom: 1px solid rgba(255,255,255,0.1); } .deck-btn { flex: 0 0 auto; white-space: nowrap; } }
+
+  /* --- PRETTY USER CARD --- */
+  .user-list-container { min-height: 200px; padding-bottom: 50px; }
+  .user-card-item { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 20px; margin-bottom: 15px; transition: 0.3s; position: relative; }
+  .user-card-item:hover { background: rgba(255,255,255,0.04); border-color: rgba(56, 189, 248, 0.3); transform: translateY(-2px); }
+  .role-badge { font-size: 0.7rem; padding: 4px 12px; border-radius: 20px; text-transform: uppercase; font-weight: 700; letter-spacing: 1px; }
+  .role-user { color: #38bdf8; background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.2); }
+  .role-admin { color: #fbbf24; background: rgba(251, 191, 36, 0.1); border: 1px solid rgba(251, 191, 36, 0.2); }
+  .info-row { display: flex; align-items: center; gap: 8px; font-size: 0.9rem; color: rgba(255,255,255,0.6); margin-bottom: 6px; }
+  .card-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.05); }
+  .edit-btn { background: transparent; border: 1px solid #38bdf8; color: #38bdf8; padding: 8px 16px; border-radius: 8px; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: 0.2s; }
+  .edit-btn:hover { background: rgba(56, 189, 248, 0.1); }
+  .delete-btn { background: transparent; border: 1px solid #ef4444; color: #ef4444; padding: 8px 16px; border-radius: 8px; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: 0.2s; }
+  .delete-btn:hover { background: rgba(239, 68, 68, 0.15); }
+
+  /* --- ROBOT & LOGOUT --- */
+  .ai-sentinel { position: fixed; bottom: 20px; right: 20px; width: 140px; z-index: 9999 !important; pointer-events: none; opacity: 1 !important; display: block !important; filter: drop-shadow(0 0 15px rgba(56, 189, 248, 0.3)); }
+  @media (max-width: 600px) { .ai-sentinel { width: 90px; bottom: 10px; right: 10px; }}
+  .logout-btn {
+    position: fixed; top: 25px; right: 30px; z-index: 100;
+    width: 48px; height: 48px; border-radius: 12px;
+    border: 1px solid rgba(56, 189, 248, 0.3);
+    background: rgba(15, 23, 42, 0.6); color: #38bdf8;
+    font-size: 22px; cursor: pointer; backdrop-filter: blur(10px);
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.3s ease; box-shadow: 0 0 15px rgba(56, 189, 248, 0.1);
+  }
+  .logout-btn:hover { background: rgba(56, 189, 248, 0.2); transform: scale(1.05); }
+
+  /* --- MODALS --- */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(2, 6, 23, 0.85); backdrop-filter: blur(8px); z-index: 9999; display: none; justify-content: center; align-items: center; }
+  .modal-overlay.open { display: flex; animation: fadeModal 0.2s ease-out; }
+  @keyframes fadeModal { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+  .modal-card { background: #0f172a; border: 1px solid #38bdf8; padding: 30px; border-radius: 20px; width: 90%; max-width: 400px; box-shadow: 0 0 50px rgba(56,189,248,0.2); }
+  .warning-icon { font-size: 3.5rem; margin-bottom: 15px; display: block; animation: pulse 1.5s infinite; text-align: center; }
+  .warning-title { color: #ef4444; font-size: 1.4rem; margin-bottom: 10px; font-weight: 800; letter-spacing: 1px; text-align: center; }
+  .warning-text { color: #cbd5e1; font-size: 0.95rem; line-height: 1.6; margin-bottom: 25px; text-align: center; }
+
+  /* --- MAP OVERLAY & LOADER --- */
+  #mapOverlay { 
+      position: fixed; inset: 0; z-index: 5000; 
+      background: #020617; display: none; flex-direction: column; 
+      animation: slideUpMap 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  #mapOverlay.active { display: flex; }
+  @keyframes slideUpMap { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+  .map-header { 
+      height: 60px; background: rgba(15, 23, 42, 0.95); 
+      border-bottom: 1px solid rgba(56, 189, 248, 0.3); 
+      display: flex; align-items: center; justify-content: space-between; 
+      padding: 0 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 20;
+  }
+  .map-header-title { color: white; font-weight: 700; font-size: 1.1rem; display: flex; align-items: center; gap: 10px; }
+  .map-header-title span { color: #38bdf8; opacity: 0.8; }
+  
+  .close-map-btn { 
+      background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); 
+      color: white; padding: 8px 16px; border-radius: 8px; cursor: pointer; 
+      font-size: 0.85rem; font-weight: 600; transition: 0.2s; display: flex; align-items: center; gap: 8px;
+  }
+  .close-map-btn:hover { background: #ef4444; border-color: #ef4444; box-shadow: 0 0 15px rgba(239, 68, 68, 0.4); }
+
+  #mapFrame { flex: 1; width: 100%; border: none; background: #0f172a; opacity: 0; transition: opacity 0.5s ease; }
+  
+  #mapLoader {
+      position: absolute; inset: 60px 0 0 0; z-index: 10;
+      background: #020617;
+      display: flex; flex-direction: column;
+      justify-content: center; align-items: center;
+      gap: 20px;
+  }
+  .loader-spinner {
+      width: 50px; height: 50px;
+      border: 3px solid rgba(56, 189, 248, 0.1);
+      border-top-color: #38bdf8;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+  }
+  .loader-text { color: #38bdf8; font-size: 0.9rem; letter-spacing: 2px; text-transform: uppercase; animation: pulse 2s infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @keyframes pulse { 0%, 100% { opacity: 0.6; } 50% { opacity: 1; } }
+
+</style>
+</head>
+
+<body class="dark hidden-body">
+
+    <div id="app-loader" style="position: fixed; inset: 0; z-index: 9999; background: #020617; display: flex; align-items: center; justify-content: center; transition: opacity 0.5s ease;">
+        <div style="width: 50px; height: 50px; border: 3px solid rgba(56, 189, 248, 0.3); border-top-color: #38bdf8; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+    </div>
+
+    <script type="module" src="guard.js"></script>
+    <script type="module" src="admin.js"></script>
+
+    <div class="viewport-bg"><canvas id="canvas-stars"></canvas></div>
+    <button id="logoutBtn" class="logout-btn" title="Logout">⎋</button>
+
+    <div class="admin-container">
+
+        <nav class="tabs-nav">
+            <button class="tab-btn active" data-tab="create">New Agent</button>
+            <button class="tab-btn" data-tab="database">Database</button>
+            <button class="tab-btn" data-tab="intelligence">Map Dates</button>
+            <button class="tab-btn" data-tab="allmaps">All Maps</button>
+        </nav>
+
+        <div id="tab-create" class="tab-pane active">
+            <div class="glass-card">
+                <h2 class="section-title">Initialize New Agent</h2>
+                <img src="assets/logo.png" alt="Rameda Logo" class="logo">
+
+                <form id="createUserForm">
+                    <input type="text" id="username" class="glass-input" required placeholder="Full Name">
+                    <input type="email" id="email" class="glass-input" required placeholder="Email Address">
+                    <input type="tel" id="phone" class="glass-input" required placeholder="Phone Number">
+                    <input type="password" id="password" class="glass-input" required placeholder="Password">
+                    <div class="custom-dd-wrapper">
+                        <div class="custom-dd-trigger" id="roleTrigger"><span id="roleLabel">Select Role...</span> <span>▼</span></div>
+                        <div class="custom-dd-options" id="roleDropdown">
+                            <div class="dd-option role-opt" data-value="user"><span class="check">✓</span> User</div>
+                            <div class="dd-option role-opt" data-value="admin"><span class="check">✓</span> Admin</div>
+                        </div>
+                    </div>
+                    <div class="custom-dd-wrapper">
+                        <div class="custom-dd-trigger" id="accessTrigger"><span id="accessLabel">Select Workspaces...</span> <span>▼</span></div>
+                        <div class="custom-dd-options" id="accessDropdown">
+                            <div class="dd-option access-opt" data-value="Speciality care 1"><span class="check">✓</span> Speciality Care 1</div>
+                            <div class="dd-option access-opt" data-value="Speciality Care 2"><span class="check">✓</span> Speciality Care 2</div>
+                            <div class="dd-option access-opt" data-value="Primary care 1"><span class="check">✓</span> Primary Care 1</div>
+                            <div class="dd-option access-opt" data-value="Other sales"><span class="check">✓</span> Other Sales</div>
+                        </div>
+                    </div>
+                    <div id="adminMsg" style="min-height:20px; text-align:center; margin-bottom:10px;"></div>
+                    <button type="submit" class="glow-btn" id="createBtn">CREATE ACCOUNT</button>
+                </form>
+            </div>
+        </div>
+
+        <div id="tab-database" class="tab-pane">
+            <div class="glass-card">
+                <h2 class="section-title">Active Database</h2>
+                <img src="assets/logo.png" alt="Rameda Logo" class="logo">
+
+                <button id="loadUsersBtn" class="glow-btn secondary" style="margin-bottom:20px;"><span>↻</span> REFRESH LIST</button>
+                <div id="usersList" class="user-list-container"></div>
+            </div>
+        </div>
+
+        <div id="tab-intelligence" class="tab-pane">
+            <div class="glass-card">
+                <h2 class="section-title">Data Availability Control</h2>
+                <img src="assets/logo.png" alt="Rameda Logo" class="logo">
+
+                <form id="mapConfigForm">
+                    <div class="custom-dd-wrapper" style="margin-bottom:30px;">
+                        <div class="custom-dd-trigger" id="mapSelectorTrigger"><span id="mapSelectorLabel">Select Target Workspace...</span> <span>▼</span></div>
+                        <div class="custom-dd-options" id="mapSelectorDropdown">
+                            <div class="dd-option map-opt" data-value="Speciality care 1">Speciality Care 1</div>
+                            <div class="dd-option map-opt" data-value="Speciality Care 2">Speciality Care 2</div>
+                            <div class="dd-option map-opt" data-value="Primary care 1">Primary Care 1</div>
+                            <div class="dd-option map-opt" data-value="Other sales">Other Sales</div>
+                        </div>
+                        <input type="hidden" id="mapSelector" value="">
+                    </div>
+                    <div class="date-row">
+                        <div class="date-label">Sales Data</div>
+                        <div class="date-group"><label>FROM</label><input type="date" id="salesFrom"></div>
+                        <div class="date-group"><label>TO</label><input type="date" id="salesTo"></div>
+                    </div>
+                    <div class="date-row">
+                        <div class="date-label">IMS Data</div>
+                        <div class="date-group"><label>FROM</label><input type="date" id="expensesFrom"></div>
+                        <div class="date-group"><label>TO</label><input type="date" id="expensesTo"></div>
+                    </div>
+                    <div class="date-row">
+                        <div class="date-label">ROI Data</div>
+                        <div class="date-group"><label>FROM</label><input type="date" id="roiFrom"></div>
+                        <div class="date-group"><label>TO</label><input type="date" id="roiTo"></div>
+                    </div>
+                    <div id="mapMsg" style="min-height:20px; text-align:center; margin:10px 0;"></div>
+                    <button type="submit" class="glow-btn accent" id="saveMapBtn">UPDATE DATES</button>
+                </form>
+            </div>
+        </div>
+
+        <div id="tab-allmaps" class="tab-pane">
+            <div class="glass-card">
+                <h2 class="section-title">All Avilable Maps</h2>
+                <img src="assets/logo.png" alt="Rameda Logo" class="logo">
+
+                <div class="deck-container">
+                    
+                    <div class="deck-menu">
+                        <div class="deck-btn active" data-deck="sc1"> Speciality Care 1</div>
+                        <div class="deck-btn" data-deck="sc2"> Speciality Care 2</div>
+                        <div class="deck-btn" data-deck="pc1"> Primary Care</div>
+                        <div class="deck-btn" data-deck="other"> Other Sales</div>
+                    </div>
+
+                    <div class="deck-content">
+                        
+                        <div id="deck-sc1" class="deck-panel active">
+                            <h3 style="color:white; margin:0 0 5px 0;">Speciality Care 1</h3>
+                            <p style="color:#64748b; font-size:0.9rem; margin-bottom:15px;">Workspace Alpha Overview</p>
+                            <div class="action-list">
+                                <button class="deck-btn launch-map-btn" data-url="sales_maps/SC1SalesAnalysisMap/index.html" data-title="SC1 Sales Analysis">
+                                    <span class="title">Sales Analysis</span> 
+                                </button>
+                                <button class="deck-btn launch-map-btn" data-url="IMS/index.html" data-title="SC1 Expenses">
+                                    <span class="title">IMS</span> 
+                                </button>
+                                <button class="deck-btn launch-map-btn" data-url="ROI/SC1ROIMap/index.html" data-title="SC1 ROI Metrics">
+                                    <span class="title">ROI</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div id="deck-sc2" class="deck-panel">
+                            <h3 style="color:white; margin:0 0 5px 0;">Speciality Care 2</h3>
+                            <p style="color:#64748b; font-size:0.9rem; margin-bottom:15px;">Workspace Beta Overview</p>
+                            <div class="action-list">
+                                <button class="deck-btn launch-map-btn" data-url="sales_maps/SC2SalesAnalysisMap/index.html" data-title="SC2 Sales Analysis">
+                                    <span class="title">Sales Analysis</span> 
+                                </button>
+                                <button class="deck-btn launch-map-btn" data-url="IMS/index.html" data-title="SC2 Expenses">
+                                    <span class="title">IMS</span>
+                                </button>
+                                <button class="deck-btn launch-map-btn" data-title="SC2 ROI Metrics">
+                                    <span class="title">ROI</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div id="deck-pc1" class="deck-panel">
+                            <h3 style="color:white; margin:0 0 5px 0;">Primary Care</h3>
+                            <p style="color:#64748b; font-size:0.9rem; margin-bottom:15px;">General Medicine Overview</p>
+                            <div class="action-list">
+                                <button class="deck-btn launch-map-btn" data-url="sales_maps/PCSalesAnalysisMap/index.html" data-title="PC1 Sales Analysis">
+                                    <span class="title">Sales Analysis</span>
+                                </button>
+                                <button class="deck-btn launch-map-btn" data-url="IMS/index.html" data-title="PC1 Expenses">
+                                    <span class="title">IMS</span>
+                                </button>
+                                <button class="deck-btn launch-map-btn" data-url="ROI/PCROIMap/index.html" data-title="PC1 ROI Metrics">
+                                    <span class="title">ROI</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div id="deck-other" class="deck-panel">
+                            <h3 style="color:white; margin:0 0 5px 0;">Other Sales</h3>
+                            <p style="color:#64748b; font-size:0.9rem; margin-bottom:15px;">Miscellaneous Operations</p>
+                            <div class="action-list">
+                                <button class="deck-btn launch-map-btn" data-url="sales_maps/OtherSalesAnalysisMap/index.html" data-title="Other Sales Analysis">
+                                    <span class="title">Sales Analysis</span> 
+                                </button>
+                                <button class="deck-btn launch-map-btn" data-url="IMS/index.html" data-title="Other IMS">
+                                    <span class="title">IMS</span>
+                                </button>
+                                <button class="deck-btn launch-map-btn" data-title="Other ROI Metrics">
+                                    <span class="title">ROI</span> 
+                                </button>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="ai-sentinel" id="robot">
+        <div class="robot-interaction-wrapper" id="robot-move">
+            <svg viewBox="0 0 100 100" class="robot-svg">
+                <defs>
+                    <filter id="robot-glow" x="-50%" y="-50%" width="200%" height="200%">
+                        <feGaussianBlur stdDeviation="2.5" result="coloredBlur"/>
+                        <feMerge>
+                            <feMergeNode in="coloredBlur"/>
+                            <feMergeNode in="SourceGraphic"/>
+                        </feMerge>
+                    </filter>
+                </defs>
+                <circle cx="50" cy="50" r="48" class="ring ring-outer" />
+                <circle cx="50" cy="50" r="40" class="ring ring-inner" />
+                <g class="robot-float-group">
+                    <path class="robot-part" d="M35,65 Q50,80 65,65 L60,55 L40,55 Z" />
+                    <path class="robot-part head-shell" d="M30,50 Q30,25 50,25 Q70,25 70,50 L65,55 L35,55 Z" />
+                    <rect class="robot-visor" x="38" y="38" width="24" height="7" rx="3.5" />
+                    <circle class="robot-eye" cx="50" cy="41.5" r="1.5" />
+                    <line x1="30" y1="45" x2="22" y2="40" class="antenna-line" />
+                    <line x1="70" y1="45" x2="78" y2="40" class="antenna-line" />
+                </g>
+            </svg>
+        </div>
+        <div class="status-indicator">
+            <span class="status-dot"></span>
+            AI_NEXUS_v1.0: ACTIVE
+        </div>
+    </div>
+
+    <div id="mapOverlay">
+        <div class="map-header">
+            <div class="map-header-title">
+                <span>✦</span> <span id="mapTitleDisplay" style="color:white; margin-left:5px;">Analysis Map</span>
+            </div>
+            <button class="close-map-btn" id="closeMapBtn">
+                ← RETURN TO ADMIN
+            </button>
+        </div>
+        
+        <div id="mapLoader">
+            <div class="loader-spinner"></div>
+            <div class="loader-text">Compiling Data</div>
+        </div>
+
+        <iframe id="mapFrame" src=""></iframe>
+    </div>
+
+    <div class="modal-overlay" id="editModal">
+        <div class="modal-card">
+            <h3 style="color:#38bdf8; margin-bottom:20px;">Edit User</h3>
+            <input type="hidden" id="editUid">
+            <input id="editName" class="glass-input" placeholder="Name">
+            <input id="editPhone" class="glass-input" placeholder="Phone">
+            <label style="color:white; font-size:0.8rem; display:block; margin-top:10px;">Role</label>
+            <select id="editRole" class="glass-input" style="background:#0f172a;">
+                <option value="user">User</option>
+                <option value="admin">Admin</option>
+            </select>
+            <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:20px; margin-top:10px;">
+                <label style="color:rgba(255,255,255,0.7)"><input type="checkbox" class="edit-access-cb" value="Speciality care 1"> Speciality Care 1</label>
+                <label style="color:rgba(255,255,255,0.7)"><input type="checkbox" class="edit-access-cb" value="Speciality Care 2"> Speciality Care 2</label>
+                <label style="color:rgba(255,255,255,0.7)"><input type="checkbox" class="edit-access-cb" value="Primary care 1"> Primary Care 1</label>
+                <label style="color:rgba(255,255,255,0.7)"><input type="checkbox" class="edit-access-cb" value="Other sales"> Other Sales</label>
+            </div>
+            <div style="display:flex; gap:10px;">
+                <button class="glow-btn secondary" id="closeModalBtn">Cancel</button>
+                <button class="glow-btn" id="saveEditBtn">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="deleteModal">
+        <div class="modal-card" style="border-color: #ef4444; box-shadow: 0 0 40px rgba(239, 68, 68, 0.2);">
+            <span class="warning-icon">⚠️</span>
+            <div class="warning-title">DELETE USER?</div>
+            <p class="warning-text">
+                Are you sure you want to remove this agent?
+                <br>
+                <span style="font-size:0.85rem; opacity:0.6; color:#ef4444;">This action cannot be undone.</span>
+            </p>
+            <input type="hidden" id="deleteTargetId">
+            <div style="display:flex; gap:12px;">
+                <button class="glow-btn secondary" id="cancelDeleteBtn">CANCEL</button>
+                <button class="glow-btn danger" id="confirmDeleteBtn">YES, DELETE</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="warningModal">
+        <div class="modal-card" style="border-color:#ef4444; box-shadow:0 0 50px rgba(239,68,68,0.15);">
+            <span class="warning-icon">🚧</span>
+            <div class="warning-title">SYSTEM NOTICE</div>
+            <p class="warning-text">
+                This map is currently compiling and will be loaded very soon.
+                <br><br>
+                <span style="font-size:0.8rem; opacity:0.7;">STATUS: PENDING UPLOAD</span>
+            </p>
+            <button class="glow-btn" style="background:#1e293b;" id="warningModalCloseBtn">ACKNOWLEDGE</button>
+        </div>
+    </div>
+
+</body>
+</html>
