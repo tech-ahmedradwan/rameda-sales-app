@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Rameda AI — Coming Soon</title>
+
+    <style>
+        /* -------- RESET -------- */
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            margin: 0;
+            width: 100%;
+            height: 100%;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: #020617;
+            color: white;
+            overflow: hidden;
+        }
+
+        /* -------- STAR BACKGROUND -------- */
+        #stars {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+        }
+
+        /* -------- CENTER CONTENT -------- */
+        .wrapper {
+            position: relative;
+            z-index: 2;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        /* -------- GLASS CARD -------- */
+        .card {
+            max-width: 520px;
+            width: 100%;
+            padding: 50px 40px;
+            text-align: center;
+            background: rgba(15, 23, 42, 0.7);
+            border: 1px solid rgba(56, 189, 248, 0.25);
+            border-radius: 28px;
+            backdrop-filter: blur(25px);
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
+            animation: rise 0.8s ease forwards;
+            opacity: 0;
+        }
+
+        @keyframes rise {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        /* -------- LOGO -------- */
+        .logo-wrap {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 22px;
+        }
+
+        .logo {
+            width: clamp(120px, 35vw, 180px);
+            /* ⬅ bigger, fits card */
+            max-width: 100%;
+            height: auto;
+            animation: float 4s ease-in-out infinite,
+                glow 2.5s ease-in-out infinite;
+            filter: brightness(0) invert(1);
+        }
+
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        @keyframes glow {
+
+            0%,
+            100% {
+                filter: brightness(0) invert(1) drop-shadow(0 0 6px rgba(56, 189, 248, 0.4));
+            }
+
+            50% {
+                filter: brightness(0) invert(1) drop-shadow(0 0 20px rgba(56, 189, 248, 0.9));
+            }
+        }
+
+        /* -------- BRAND -------- */
+        .tag {
+            color: #38bdf8;
+            font-size: 0.8rem;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            font-weight: 700;
+        }
+
+        /* -------- TEXT -------- */
+        h1 {
+            margin: 15px 0 10px;
+            font-size: 2.4rem;
+        }
+
+        p {
+            color: #94a3b8;
+            line-height: 1.6;
+            font-size: 1rem;
+        }
+
+        /* -------- DIVIDER -------- */
+        .divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #38bdf8, transparent);
+            margin: 30px 0;
+        }
+
+        /* -------- FOOTER -------- */
+        .footer {
+            margin-top: 25px;
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        /* -------- MOBILE -------- */
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 2rem;
+            }
+
+            .card {
+                padding: 40px 25px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <canvas id="stars"></canvas>
+
+    <div class="wrapper">
+        <div class="card">
+
+            <!-- RESPONSIVE ANIMATED IMAGE LOGO -->
+            <div class="logo-wrap">
+                <img src="assets/logo.png" alt="Rameda AI Logo" class="logo">
+            </div>
+
+            <div class="tag">Rameda AI</div>
+            <h1>🚀 Coming Soon</h1>
+            <p>
+                Our website is under construction.<br />
+                We’ll be live very soon.
+            </p>
+
+            <div class="divider"></div>
+
+            <div class="footer">
+                © 2026 Rameda AI · All systems preparing
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /* -------- STARFIELD -------- */
+        const canvas = document.getElementById("stars");
+        const ctx = canvas.getContext("2d");
+        let w, h, stars;
+
+        function resize() {
+            w = canvas.width = window.innerWidth;
+            h = canvas.height = window.innerHeight;
+            stars = Array.from({ length: Math.floor(w * h / 8000) }, () => ({
+                x: Math.random() * w,
+                y: Math.random() * h,
+                r: Math.random() * 1.5 + 0.5,
+                v: Math.random() * 0.3 + 0.1
+            }));
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, w, h);
+            ctx.fillStyle = "#38bdf8";
+            stars.forEach(s => {
+                ctx.globalAlpha = Math.random();
+                ctx.beginPath();
+                ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+                ctx.fill();
+                s.y += s.v;
+                if (s.y > h) s.y = 0;
+            });
+            requestAnimationFrame(draw);
+        }
+
+        window.addEventListener("resize", resize);
+        resize();
+        draw();
+    </script>
+
+</body>
+
+</html>
